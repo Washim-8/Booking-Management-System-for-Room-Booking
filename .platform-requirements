@@ -1,0 +1,10 @@
+# Platform Requirements for Docker Build
+# This file documents the required platform for composer.lock generation
+php=8.2.0
+ext-pdo=*
+ext-pdo_pgsql=*
+ext-pgsql=*
+ext-mbstring=*
+ext-zip=*
+ext-gd=*
+ext-bcmath=*
