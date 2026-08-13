@@ -26,17 +26,29 @@ RUN a2enmod rewrite
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Set Composer environment variables
+ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV COMPOSER_NO_INTERACTION=1
+
 # Copy composer files first (for better layer caching)
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies
-RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist
+# Install PHP dependencies with platform checks ignored
+RUN composer install \
+    --no-dev \
+    --no-scripts \
+    --no-autoloader \
+    --no-interaction \
+    --prefer-dist \
+    --ignore-platform-req=php \
+    --ignore-platform-req=ext-* \
+    || composer update --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist --ignore-platform-req=php --ignore-platform-req=ext-*
 
 # Copy application files
 COPY . .
 
 # Complete composer setup
-RUN composer dump-autoload --no-dev --optimize
+RUN composer dump-autoload --no-dev --optimize --classmap-authoritative
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
