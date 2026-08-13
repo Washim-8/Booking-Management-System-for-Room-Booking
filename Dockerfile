@@ -1,6 +1,9 @@
 # Use PHP 8.2 with Apache
 FROM php:8.2-apache
 
+# Set working directory early
+WORKDIR /var/www/html
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
@@ -9,27 +12,31 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libpq-dev \
+    libzip-dev \
     zip \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions required for Laravel with PostgreSQL
-RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
 
 # Enable Apache mod_rewrite for Laravel routing
 RUN a2enmod rewrite
 
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy application files
-COPY . /var/www/html
-
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Copy composer files first (for better layer caching)
+COPY composer.json composer.lock ./
+
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist
+
+# Copy application files
+COPY . .
+
+# Complete composer setup
+RUN composer dump-autoload --no-dev --optimize
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
