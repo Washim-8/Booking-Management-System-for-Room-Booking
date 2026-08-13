@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Rules\alphaSpace;
+use App\Rules\AlphaSpace;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
