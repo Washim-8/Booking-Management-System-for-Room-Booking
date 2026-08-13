@@ -23,4 +23,3 @@ storage/framework/views/*
 bootstrap/cache/*
 public/hot
 public/storage
-composer.lock
