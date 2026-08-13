@@ -1,0 +1,3 @@
+# This directory stores room images uploaded by administrators
+# Images are stored here for demo purposes
+# In production with persistent storage requirements, consider using cloud storage (S3, Cloudinary, etc.)

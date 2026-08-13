@@ -1,0 +1,71 @@
+# Render Blueprint for StayEase Hotel Booking System
+# This file can be used to deploy the application via Render's Infrastructure as Code
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # Web Service - Laravel Application
+  - type: web
+    name: stayease-hotel
+    runtime: docker
+    plan: free  # Change to 'starter' or higher for production
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    
+    # Health check endpoint
+    healthCheckPath: /
+    
+    # Environment variables
+    envVars:
+      - key: APP_NAME
+        value: StayEase Hotel
+      
+      - key: APP_ENV
+        value: production
+      
+      - key: APP_KEY
+        generateValue: true  # Render will prompt you to generate this
+      
+      - key: APP_DEBUG
+        value: false
+      
+      - key: APP_URL
+        value: https://stayease-hotel.onrender.com  # Update with your actual URL
+      
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stayease-db
+          property: connectionString
+      
+      - key: DB_CONNECTION
+        value: pgsql
+      
+      - key: DB_SSLMODE
+        value: require
+      
+      - key: SESSION_DRIVER
+        value: database
+      
+      - key: CACHE_DRIVER
+        value: database
+      
+      - key: QUEUE_CONNECTION
+        value: database
+      
+      - key: LOG_CHANNEL
+        value: stack
+      
+      - key: LOG_LEVEL
+        value: error
+
+# Note: Render's managed PostgreSQL is only available on paid plans
+# For free tier, use Supabase PostgreSQL and manually add DATABASE_URL
+
+# If using Render Managed PostgreSQL (Paid plans):
+# Uncomment the section below
+
+# databases:
+#   - name: stayease-db
+#     plan: free  # PostgreSQL free tier has limitations
+#     databaseName: stayease_hotel
+#     user: stayease_user

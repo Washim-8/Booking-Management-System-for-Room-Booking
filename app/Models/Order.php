@@ -25,18 +25,31 @@ class Order extends Model {
         'check_out' => 'datetime',
     ];
 
+    /**
+     * Get the room associated with this order.
+     */
     public function room(): BelongsTo {
-
         return $this->belongsTo(Room::class, 'room_id', 'id');
     }
 
+    /**
+     * Get the user who made this booking.
+     */
     public function user(): BelongsTo {
-
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    public function getStayDaysAttribute() {
-
+    /**
+     * Calculate the number of days for the stay.
+     */
+    public function getStayDaysAttribute(): int {
         return $this->check_in->diffInDays($this->check_out);
+    }
+
+    /**
+     * Calculate the total cost of the booking.
+     */
+    public function getTotalCostAttribute(): float {
+        return $this->room->price * $this->stayDays;
     }
 }
