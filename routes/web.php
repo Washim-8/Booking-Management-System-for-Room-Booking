@@ -22,6 +22,23 @@ use App\Http\Controllers\Admin\RoomTypeController;
 |
 */
 
+/************************************
+ *       Render Health Checks
+ ************************************/
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'healthy',
+        'timestamp' => now()->toIso8601String(),
+    ], 200);
+});
+
+Route::get('/healthz', function () {
+    return response()->json([
+        'status' => 'healthy',
+        'timestamp' => now()->toIso8601String(),
+    ], 200);
+});
+
 Route::get('/', [PageController::class, 'index'])->name('home');
 
 Route::get('/rooms', [PageController::class, 'list_rooms'])->name('rooms.index');
