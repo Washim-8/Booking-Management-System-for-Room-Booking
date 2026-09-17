@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomType;
 use Illuminate\Database\Eloquent\Builder;

@@ -1,19 +1,31 @@
 #!/bin/bash
 set -e
 
-# Wait for database to be ready (optional, helpful for local testing)
-echo "Waiting for database connection..."
-sleep 3
+# Support dynamic PORT configuration provided by Render or container environment
+if [ -n "$PORT" ] && [ "$PORT" != "80" ]; then
+    echo "Configuring Apache to listen on port $PORT..."
+    sed -i "s/Listen 80/Listen $PORT/g" /etc/apache2/ports.conf
+    sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:$PORT>/g" /etc/apache2/sites-available/*.conf
+fi
 
-# Run Laravel artisan commands
+# Ensure all storage and cache directories exist with proper permissions
+mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+# Wait for database connection if configured
+if [ -n "$DATABASE_URL" ] || [ -n "$DB_HOST" ]; then
+    echo "Waiting for database connection..."
+    sleep 3
+fi
+
+# Run Laravel setup & optimization commands
 echo "Running Laravel setup commands..."
+php artisan config:cache || echo "Config cache skipped"
+php artisan route:cache || echo "Route cache skipped"
+php artisan view:cache || echo "View cache skipped"
 
-# Cache Laravel configuration for better performance
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-
-# Run migrations (only if database is ready)
+# Run migrations safely in production (non-destructive)
 if [ "$APP_ENV" != "local" ]; then
     echo "Running database migrations..."
     php artisan migrate --force --no-interaction || echo "Migration failed or already run"
@@ -26,7 +38,7 @@ php artisan storage:link || echo "Storage link already exists"
 if [ -n "$RENDER_EXTERNAL_URL" ] || [ -n "$APP_URL" ]; then
     (
         TARGET_URL="${RENDER_EXTERNAL_URL:-$APP_URL}"
-        PING_URL="${TARGET_URL%/}/healthz"
+        PING_URL="${TARGET_URL%/}/health"
         echo "[KeepAlive] Background keep-alive daemon started for ${PING_URL} (pings every 10 min)"
         # Wait 30s so Apache has completely bound to port and is accepting traffic
         sleep 30
@@ -42,3 +54,4 @@ echo "Laravel application ready!"
 
 # Execute the main container command
 exec "$@"
+
